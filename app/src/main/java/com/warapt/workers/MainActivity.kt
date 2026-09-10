@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.warapt.workers.ui.login.LoginScreen
 import com.warapt.workers.ui.theme.WaraPtAppMovilTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,12 +20,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WaraPtAppMovilTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                LoginScreen(onLoginSuccess = {
+                    // por ahora solo un log, luego aquí navegamos a Gestión
+                    println("Login exitoso!")
+                })
             }
         }
     }
