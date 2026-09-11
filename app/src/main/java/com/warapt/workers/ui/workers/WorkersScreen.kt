@@ -5,22 +5,28 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.warapt.workers.data.local.SessionManager
+import androidx.compose.ui.platform.LocalContext
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkersScreen(
     viewModel: WorkersViewModel = viewModel(),
-    onAddWorkerClick: () -> Unit
+    onAddWorkerClick: () -> Unit,
+    onLogout: () -> Unit
 ) {
     var dniFilter by remember { mutableStateOf("") }
     val workers by viewModel.workers
     val isLoading by viewModel.isLoading
     val errorMessage by viewModel.errorMessage
+    val context = LocalContext.current
 
     // Se ejecuta UNA vez, al entrar a la pantalla (equivalente a ngOnInit)
     LaunchedEffect(Unit) {
@@ -28,6 +34,19 @@ fun WorkersScreen(
     }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Trabajadores") },
+                actions = {
+                    IconButton(onClick = {
+                        SessionManager(context).clearSession()
+                        onLogout()   // nuevo parámetro que navega a Login
+                    }) {
+                        Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión")
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddWorkerClick) {
                 Icon(Icons.Default.Add, contentDescription = "Agregar trabajador")

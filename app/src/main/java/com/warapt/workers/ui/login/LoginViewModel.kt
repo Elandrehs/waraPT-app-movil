@@ -1,14 +1,18 @@
 package com.warapt.workers.ui.login
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.warapt.workers.data.RetrofitClient
 import com.warapt.workers.data.models.LoginRequest
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
+import androidx.lifecycle.AndroidViewModel
+import com.warapt.workers.data.local.SessionManager
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val sessionManager = SessionManager(application)
 
     // "State" es una variable que, cuando cambia, hace que Compose
     // vuelva a dibujar automáticamente lo que dependa de ella
@@ -31,6 +35,7 @@ class LoginViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.api.login(LoginRequest(username, password))
                 if (response.isSuccessful) {
+                    sessionManager.saveSession(username)
                     _loginSuccess.value = true
                 } else {
                     _errorMessage.value = "Usuario o contraseña incorrectos"
