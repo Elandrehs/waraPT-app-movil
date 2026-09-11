@@ -50,8 +50,11 @@ fun AddWorkerScreen(
         )
         Spacer(Modifier.height(8.dp))
 
+
+        // no permite escribir mas de 7 caracteres
         OutlinedTextField(
-            value = dni, onValueChange = { dni = it },
+            value = dni,
+            onValueChange = { if (it.length <= 7 && it.all { c -> c.isDigit() }) dni = it },
             label = { Text("DNI") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
@@ -77,6 +80,8 @@ fun AddWorkerScreen(
                 val ageInt = age.toIntOrNull()
                 validationError = when {
                     firstName.isBlank() || lastName.isBlank() || dni.isBlank() -> "Completa todos los campos"
+                    !dni.all { it.isDigit() } -> "El DNI solo debe contener números"
+                    dni.length != 7 -> "El DNI debe tener 7 dígitos"
                     ageInt == null -> "La edad debe ser un número"
                     else -> null
                 }

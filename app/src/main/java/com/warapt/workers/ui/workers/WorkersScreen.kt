@@ -1,5 +1,6 @@
 package com.warapt.workers.ui.workers
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,10 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.warapt.workers.data.local.SessionManager
-import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +30,11 @@ fun WorkersScreen(
     val errorMessage by viewModel.errorMessage
     val context = LocalContext.current
 
-    // Se ejecuta UNA vez, al entrar a la pantalla (equivalente a ngOnInit)
+    // para mostrar el nombre del usuario en la pantalla de workers
+    val sessionManager = remember { SessionManager(context) }
+    val username = sessionManager.getUsername() ?: "usuario"
+
+    // Se ejecuta UNA vez, al entrar a la pantalla
     LaunchedEffect(Unit) {
         viewModel.loadWorkers()
     }
@@ -36,7 +42,7 @@ fun WorkersScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Trabajadores") },
+                title = { Text("Bienvenido, $username!!") },
                 actions = {
                     IconButton(onClick = {
                         SessionManager(context).clearSession()
@@ -47,6 +53,7 @@ fun WorkersScreen(
                 }
             )
         },
+        floatingActionButtonPosition = FabPosition.Center,
         floatingActionButton = {
             FloatingActionButton(onClick = onAddWorkerClick) {
                 Icon(Icons.Default.Add, contentDescription = "Agregar trabajador")
@@ -57,17 +64,14 @@ fun WorkersScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding()            // empuja cuando se abre el teclado
                 .padding(16.dp)
         ) {
-            Text("Trabajadores", style = MaterialTheme.typography.headlineSmall)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             OutlinedTextField(
                 value = dniFilter,
                 onValueChange = {
                     dniFilter = it
-                    viewModel.loadWorkers(it)   // filtra en vivo mientras escribes
+                    viewModel.loadWorkers(it)   // filtra en vivo mientras se escribe
                 },
                 label = { Text("Filtrar por DNI") },
                 modifier = Modifier.fillMaxWidth()
@@ -83,17 +87,39 @@ fun WorkersScreen(
                 Text(text = it, color = MaterialTheme.colorScheme.error)
             }
 
-            LazyColumn {
-                items(workers) { worker ->
-                    Card(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text("${worker.firstName} ${worker.lastName}", style = MaterialTheme.typography.titleMedium)
-                            Text("DNI: ${worker.dni}  •  Edad: ${worker.age}")
+            // scroll de lista
+            // el último ítem no quede tapado por el botón "+", y un
+            // difuminado detrás del FAB para que se vea prolijo al hacer scroll.
+            Box(modifier = Modifier.weight(1f)) {
+                LazyColumn(
+                    contentPadding = PaddingValues(bottom = 96.dp)
+                ) {
+                    items(workers) { worker ->
+                        Card(modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text("${worker.firstName} ${worker.lastName}", style = MaterialTheme.typography.titleMedium)
+                                Text("DNI: ${worker.dni}  •  Edad: ${worker.age}")
+                            }
                         }
                     }
                 }
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(90.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.background.copy(alpha = 0f),
+                                    MaterialTheme.colorScheme.background
+                                )
+                            )
+                        )
+                )
             }
         }
     }
